@@ -19,11 +19,11 @@ has debug		=> (is => 'rw' , default => 0); #atributo que guarda os erros.
 
 =head1 VERSION
 
-Version 0.01
+Version 0.0.8
 
 =cut
 
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 
 
 =head1 SYNOPSIS
