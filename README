@@ -14,12 +14,20 @@ fixes for the module are worth downloading.
 
 INSTALLATION
 
+First, you MUST install unzip program. 
+
 To install this module, run the following commands:
 
 	perl Makefile.PL
 	make
 	make test
 	make install
+
+
+TEST
+
+Try run the test.pl script. This is a good introduction for Module usage.
+
 
 SUPPORT AND DOCUMENTATION
 

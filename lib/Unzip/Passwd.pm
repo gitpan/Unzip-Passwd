@@ -9,11 +9,13 @@ has debug		=> (is => 'rw' , default => 0); #atributo que guarda os erros.
 
 =head1 NAME
 
-Unzip::Passwd
+ Unzip::Passwd - Unzip files with password.
 
 =head DESCRIPTION
 
- Classe para descompactar arquivos zip que tenham senha.
+ Extreamly simple Unzip abstraction using the unzip program( MUST BE INSTALLED )
+ 
+ WARNING: This is a pre-Alpha module.
 
 =head1 VERSION
 
@@ -21,76 +23,61 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.0.4';
+our $VERSION = '0.0.6';
 
 
 =head1 SYNOPSIS
 
- #Instanciando
+ #Instance
  my $obj = Unzip::Passwd->new( filename => 'myfile.zip',
  								destiny => 'some/path/to/file/unziped',
 								passwd => 'somebetterpassword',
 							);
- #descompactando...
+ #unzip ...
  $obj->unzip;
 
+ #done!
 
 
 =head2 METHOD
 
+
+=head2 unzip
+
+ Do the job, basicly. But first invokes the analyze method, to have certain the zip file is fine. 
+ No parameters, just return 1 if it's all ok. Otherwise, will return 0 and trhow an exception.
+
+
+
 =cut
 
 sub unzip {
-
 	my ( $self ) 	= @_;
 	my @errors 		= ();
-	my @commands	= ();
 	if( !$self->filename ){
-		push @errors, 'É preciso entrar com um nome de arquivo no formato zip';
+		push @errors, 'You must enter with a zip file name.';
 	}
 	elsif(! -e $self->filename ){
 		push @errors, 'O arquivo "' . $self->filename . '" não existe!';
 	}
 	my @c = readpipe 'unzip -l ' . $self->filename;
 	my @files = ();
-	map {push @files, $2 if $_ =~ /\d+.+?\d+-\d+-\d+ \d\d:\d\d(\ |\t)+(.+?)$/ }@c;
+	foreach(@c) {
+			if( $_ =~ /\d+.+?\d+-\d+-\d+ \d\d:\d\d(\ |\t)+(.+?)$/ ){
+				push @files, $2  
+			}
+	}
 	print "\nFILES: \n";
+
 	#preparando arquivos para descompactar. Evitando mensagens de confirmação...
 	if(@files > 0){
-		map { 	my $file = $_;
-				print "\n" . $file;
-				my $dirfile = $self->destiny . '/' . $file if defined($self->destiny) and length($self->destiny) > 0;
-				if(-e $file and !defined($self->destiny) ){
-					print "\nDELETING $file (already exists)";
-					eval{unlink $file};
-					if($@){
-						push @errors, $@;
-					}
-					else{
-						print "\nOK!";
-					}
-				}
-				elsif(!-e $file and !defined($self->destiny)){
-					print "\nERROR: O arquivo ou diretório $file não existe!";
-				}
-				elsif(defined($self->destiny) and length($self->destiny) > 0 and -e $dirfile ) {
-					print "\nDELETING $dirfile (already exists)";
-					eval{unlink $dirfile;};
-					if($@){
-						push @errors, $@;
-					}
-					else{
-						print "\nOK!";
-					}
-				}
-
-		}@files;
+		$self->analyze(\@files);
 	}
 	elsif(-e $self->filename and @files == 0){
-		push @errors, 'O arquivo zip "' . $self->filename . '" está vazio!';
+		push @errors, 'the zip file "' . $self->filename . '" is empty!';
 	}
 	else {
-		push @errors, 'O arquivo "' . $self->filename . '" não existe!';
+		push @errors, 'The file "' . $self->filename . '" not exists!';
 	}
 	print "\n";
 	
@@ -102,68 +89,144 @@ sub unzip {
 		return 0;
 	}
 	else{
-		my $comm  =  'unzip';
-		if(defined($self->passwd) and length($self->passwd) > 0){
-			$comm .= ' -P ' . $self->passwd . ' ';
-		}
-		elsif(!defined($self->passwd) || length($self->passwd) == 0){
-			#that's ok!
-			$comm  =  'unzip ' . $self->filename;
-		}
-#print "\nSELF_DESTINY: " . $self->destiny;
-		if(defined($self->destiny) and length($self->destiny) > 0){
-			$comm .= ' -d ' . $self->destiny;
-		}
-		elsif(!defined($self->destiny) || length($self->destiny) == 0){
-			#that's ok!
-		}
-		else {
-			push @errors,'O tamanho do nome do arquivo de destino deve ser maior que 0';
-		}
-
-		my $target = $self->filename;
-		if($comm !~ /$target/){
-			$comm .= " $target";
-			@commands = readpipe $comm;
-		}
-		else {
-			@commands = readpipe $comm;
-		}
-
-#		print "\nCOMM: $comm";
-		map { 
-			push @errors , $_ if $_ =~ /error/i;
-		}@commands;
-		if(!@errors){
-			return 1;
-		}
-		else {
-			$self->errors(\@errors);
-			return 0;
-		}
+		return $self->exec_unzip;
 	}
 }
 
 
 =head2 show_errors
 
- Mostra os erros armazenados em $self->errors.
+ Makes the obvious. Just show errors. Don't receives anything. Returns the error messages( arrayref ).
 
 =cut
 
 sub show_errors {
 	my ( $self ) = @_;
+	my $m = '';
+	my @errors = @{$self->errors};
 	if(ref($self->errors) =~ /ARRAY/){
 		foreach my $e(@{$self->errors}){
-			print "\ne";
+			push @errors, $e;
 		}
 	}
 	else{
 		print "\nNo errors! :D\n";
+		@errors = ();
 	}
+	if(@errors){
+		my @objerrors = $self->errors;
+		push @objerrors , @errors;
+		$self->errors(\@errors);
+	}
+	return \@errors;
 }
 
 
+=head2 analyze
+
+ Analyze possible file and directory problems( permissions non-existing directories etc ). return 1 if 
+ all it's ok! Otherwise return 0. Receives the files list( arrayref ) as parameter.
+
+=cut
+
+sub analyze {
+	my ( $self , $files ) = @_;
+	my $ok = 0;
+	my @errors = ();
+	foreach(@{$files}) { 	
+		my $file = $_;
+		my $dirfile = undef;
+		print "\n" . $file;
+		if ( defined($self->destiny) and length($self->destiny) > 0 ) {
+			$dirfile = $self->destiny . '/' . $file ;
+		}
+		else{
+			$self->destiny( undef );
+		}
+		if(-e $file && !defined($self->destiny) ){
+			print "\nDELETING $file (already exists)";
+			eval{$ok = unlink $file};
+			if($@){
+				push @errors, $@;
+			}
+			else{
+				print "\nOK!";
+				$ok = 1;
+			}
+		}
+		elsif(!-e $file && !defined($self->destiny)){
+			print "\nERROR: The file or directory '$file' not exists!";
+			push @errors , "ERROR: O arquivo ou diretório $file não existe!" ;
+		}
+		elsif(defined($self->destiny) && length($self->destiny) > 0 ) {
+			print "\nDELETING $dirfile (already exists)";
+			eval{unlink $dirfile;};
+			if($@){
+				push @errors, $@;
+			}
+			else{
+				print "\nOK!";
+				$ok = 1;
+			}
+		}
+	}
+
+	#This is weard... I don't know how to get better... :p
+	if(@errors > 0){
+		my @objerrors = @{$self->errors};
+		push @objerrors , @errors;
+		$self->errors( \@objerrors );
+	}
+	return $ok;
+}
+
+
+#This is who really do the job... Takes the options and agreggate to command before execute.
+sub exec_unzip {
+	my ( $self ) = @_;
+	#the command obviously starts with unzip...
+	my $comm  =  'unzip';
+	my @errors = ();
+	my @commands = ();
+
+	#if the password is defined and have some password... -P is added
+	if(defined($self->passwd) and length($self->passwd) > 0){
+		$comm .= ' -P ' . $self->passwd . ' ';
+	}
+	elsif(!defined($self->passwd) || length($self->passwd) == 0){
+		#that's ok!
+		$comm  =  'unzip ' . $self->filename;
+	}
+
+	#same thing to destination folder
+	if(defined($self->destiny) and length($self->destiny) > 0){
+		$comm .= ' -d ' . $self->destiny;
+	}
+	else {
+		push @errors,'The size MUST be bigger than 0';
+	}
+
+	my $target = $self->filename;
+	if($comm !~ /$target/){
+		$comm .= " $target";
+		@commands = readpipe $comm;
+	}
+	else {
+		@commands = readpipe $comm;
+	}
+
+#	print "\nCOMM: $comm";
+	map { 
+		push @errors , $_ if $_ =~ /error/i;
+	}@commands;
+	if(!@errors){
+		return 1;
+	}
+	else {
+		$self->errors(\@errors);
+		return 0;
+	}
+}
 
 
 
@@ -209,6 +272,13 @@ L<http://search.cpan.org/dist/Unzip-Passwd/>
 
 =back
 
+=head1 TODO
+
+ All other features from unzip ( Linux version ). :D
+
+ Aggregates some log module.
+
+ Create tests... :(
 
 =head1 ACKNOWLEDGEMENTS
 
