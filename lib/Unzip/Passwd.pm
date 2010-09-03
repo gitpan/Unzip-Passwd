@@ -11,7 +11,7 @@ has debug		=> (is => 'rw' , default => 0); #atributo que guarda os erros.
 
  Unzip::Passwd - Unzip files with password.
 
-=head DESCRIPTION
+=head1 DESCRIPTION
 
  Extreamly simple Unzip abstraction using the unzip program( MUST BE INSTALLED )
  
@@ -23,7 +23,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 
 =head1 SYNOPSIS
