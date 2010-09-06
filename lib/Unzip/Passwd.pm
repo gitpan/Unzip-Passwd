@@ -20,11 +20,11 @@ has debug		=> (is => 'rw' , default => 0); #atributo que guarda os erros.
 
 =head1 VERSION
 
-Version 0.0.9
+Version 0.0.10
 
 =cut
 
-our $VERSION = '0.0.9';
+our $VERSION = '0.0.10';
 
 
 =head1 SYNOPSIS
@@ -54,16 +54,18 @@ our $VERSION = '0.0.9';
 sub unzip {
 	my ( $self ) 	= @_;
 	my @errors 		= ();
+	$self->errors(undef);
 	my $ok			= 0;
-	if( !$self->filename ){
-		push @errors, "You must define the 'filename' attribute.";
+	if(!defined($self->filename) || !$self->filename ){
+		push @errors, "You must define the 'filename' correctly!.";
+		$self->errors(\@errors);
 	}
 	else {
 		my @files = @{$self->list_files};
-		if(@files){
+		if(@files > 0){
 			#prepare files and directories(if exists) to extract. This avoids confirmation messages too.
-			if(@errors == 0 && @files > 0 && $self->analyze){
-				$self->execute;
+			if(@errors == 0 && @files > 0 && $self->analyze(\@files)){
+				$self->exec_unzip;
 			}
 			else {
 				$self->show_errors;
@@ -71,24 +73,18 @@ sub unzip {
 			print "\n";
 		}
 		else {
-			push @errors, 'the zip file "' . $self->filename . '" is empty!';
+			push @errors, 'the zip file list returns empty!';
 		}
 	}
-	if( @errors > 0 ){
-		if(ref( $self->errors ) =~ /ARRAY/){
-			my @_errors 	= @{$self->errors} || ();
-			push @errors , @_errors;
-			$self->errors(\@errors);
-			$self->show_errors;
-		}
-		else{
-			$self->errors(\@errors);
-			$self->show_errors;
-		}
+
+	if(ref( $self->errors ) =~ /ARRAY/){
+		push @{$self->errors} , @errors;
+		$self->show_errors;
 	}
-	else{
-		$ok = 1; 
+	else {
+		$ok = 1;
 	}
+
 	return $ok;
 }
 
@@ -115,13 +111,16 @@ sub list_files {
 		}
 	}
 	else {
-		push @errors , "The file defined in 'filename' attribute doesn't exists!";
+		push @errors , "The file '" . $self->filename . "', defined in filename attribute doesn't exists!";
 		my @objerrors = ();
-		if(defined( $self->errors ) and ref( $self->errors ) =~ /ARRAY/){
+		if(ref($self->errors) =~ /ARRAY/){
 			@objerrors = @{$self->errors};
-			push @objerrors , @errors;
-			$self->errors( @objerrors );
 		}
+		else {
+			@objerrors = ();
+		}
+		push @objerrors , @errors;
+		$self->errors( \@objerrors );
 	}
 	return \@files;
 }
@@ -182,53 +181,71 @@ sub analyze {
 # Internal method. 
 # This is who really do the job... Takes the options and agreggate to command before execute. 
 # Returns 1 if all is right. Otherwise returns 0.
+
+=head2 exec_unzip
+
+This is a internal method. Stay way from this.
+
+=cut
+
 sub exec_unzip {
 	my ( $self ) = @_;
 	#the command obviously starts with unzip...
 	my $comm  =  'unzip';
 	my @errors = ();
 	my @commands = ();
+	my $ok = 0;
 
-	#THIS PART AGREGATE OPTIONS FROM CONFIG( see the constructor method ), BEFORE EXECUTE.
+	#LAST CHECK. This is necessary for stupid someone decides run exec_unzip directly!
+	if( $self->filename ){
+		
 
-	#if the password is defined and have some password... -P is added to command
-	if(defined($self->passwd) and length($self->passwd) > 0){
-		$comm .= ' -P ' . $self->passwd . ' ';
-	}
-	elsif(!defined($self->passwd) || length($self->passwd) == 0){
-		#that's ok!
-		$comm  =  'unzip ' . $self->filename;
-	}
-
-	#same thing to destination folder
-	if(defined($self->destiny) and length($self->destiny) > 0){
-		$comm .= ' -d ' . $self->destiny;
+		#THIS PART AGREGATE OPTIONS FROM CONFIG( see the constructor method ), BEFORE EXECUTE.
+	
+		#if the password is defined and have some password... -P is added to command
+		if(defined($self->passwd) and length($self->passwd) > 0){
+			$comm .= ' -P ' . $self->passwd . ' ';
+		}
+		elsif(!defined($self->passwd) || length($self->passwd) == 0){
+			#that's ok!
+			$comm  =  'unzip ' . $self->filename;
+		}
+	
+		#same thing for destination folder
+		if(defined($self->destiny) and length($self->destiny) > 0){
+			$comm .= ' -d ' . $self->destiny;
+		}
+		else {
+			push @errors , "The destiny of zip content CAN'T be undefined";
+		}
+		my $target = $self->filename;
+	
+		#FINALY!!! EXECUTE THIS CRAP!!!
+		if($comm !~ /$target/){
+			$comm .= " $target";
+			@commands = readpipe $comm;
+		}
+		else {
+			@commands = readpipe $comm;
+		}
+	
+		map { 
+			push @errors , $_ if $_ =~ /error/i;
+		}@commands;
+	
+		if(!@errors){
+			$ok = 1;
+		}
+		else {
+			$self->errors(\@errors);
+		}
 	}
 	else {
-		push @errors,'The size MUST be bigger than 0';
-	}
-	my $target = $self->filename;
-
-	#FINALY!!! EXECUTE THIS SHIT!!!
-	if($comm !~ /$target/){
-		$comm .= " $target";
-		@commands = readpipe $comm;
-	}
-	else {
-		@commands = readpipe $comm;
-	}
-
-#	print "\nCOMM: $comm";
-	map { 
-		push @errors , $_ if $_ =~ /error/i;
-	}@commands;
-	if(!@errors){
-		return 1;
-	}
-	else {
+		push @errors , "You MUST define a filename correctly!";
 		$self->errors(\@errors);
-		return 0;
-	}
+		$ok = 0;
+	} 
+	return $ok;
 }
 
 

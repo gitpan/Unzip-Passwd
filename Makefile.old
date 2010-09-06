@@ -58,11 +58,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = Unzip::Passwd
 NAME_SYM = Unzip_Passwd
-VERSION = 0.0.9
+VERSION = 0.0.10
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_0_9
+VERSION_SYM = 0_0_10
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.0.9
+XS_VERSION = 0.0.10
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -262,7 +262,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = Unzip-Passwd
-DISTVNAME = Unzip-Passwd-0.0.9
+DISTVNAME = Unzip-Passwd-0.0.10
 
 
 # --- MakeMaker macro section:
@@ -483,7 +483,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '--- #YAML:1.0' > META_new.yml
 	$(NOECHO) $(ECHO) 'name:               Unzip-Passwd' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version:            0.0.9' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version:            0.0.10' >> META_new.yml
 	$(NOECHO) $(ECHO) 'abstract:           ~' >> META_new.yml
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - Andre Carneiro <andregarciacarneiro@gmail.com>' >> META_new.yml
@@ -771,7 +771,7 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.0.9">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.0.10">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT></ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Andre Carneiro &lt;andregarciacarneiro@gmail.com&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
