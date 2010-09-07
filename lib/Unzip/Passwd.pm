@@ -68,12 +68,13 @@ sub unzip {
 				$self->exec_unzip;
 			}
 			else {
-				$self->show_errors;
+				$ok = 0;
 			}
 			print "\n";
 		}
 		else {
 			push @errors, 'the zip file list returns empty!';
+			$ok = 0;
 		}
 	}
 
@@ -112,15 +113,18 @@ sub list_files {
 	}
 	else {
 		push @errors , "The file '" . $self->filename . "', defined in filename attribute doesn't exists!";
-		my @objerrors = ();
+
+	}
+	my @olderrors = ();
+	if(@errors > 0){
 		if(ref($self->errors) =~ /ARRAY/){
-			@objerrors = @{$self->errors};
+			push @olderrors , @{$self->errors};
+			push @olderrors , @errors;
+			$self->errors(\@olderrors);	
 		}
 		else {
-			@objerrors = ();
+			$self->errors(\@errors);
 		}
-		push @objerrors , @errors;
-		$self->errors( \@objerrors );
 	}
 	return \@files;
 }
@@ -148,31 +152,43 @@ sub analyze {
 			$self->destiny( './' );
 		}
 		$file = $self->destiny . '/' . $file;
-		if(-e $file ){
-			print "\nOVERWRITING $file (already exists)";
-			eval{$ok = unlink $file};
-			if($@){
-				push @errors, $@;
+		if(-d $self->destiny ){
+			if(-e $file ){
+				print "\nOVERWRITING $file (already exists)";
+				eval{$ok = unlink $file};
+				if($@){
+					push @errors, $@;
+					$ok = 0;
+				}
+				else{
+					print "\nOK!";
+					$ok = 1;
+				}
 			}
-			else{
-				print "\nOK!";
+			else {
 				$ok = 1;
 			}
 		}
 		else {
-			push @errors , "The file and/or destination can't be readed '" . $self->destiny . $file . "'";
+			push @errors , "The destination directory doesn't exists '" . $self->destiny . $file . "'";
+			$ok = 0;
 		}
 	}
 
 	#This is weard... I really need to do this better... :(
+	my @olderrors = ();
 	if(@errors > 0){
-		my @objerrors = ();
-		if(defined( $self->errors ) and ref( $self->errors ) =~ /ARRAY/){
-			@objerrors = @{$self->errors};
-			push @objerrors , @errors;
-			$self->errors( \@objerrors );
+		if(ref($self->errors) =~ /ARRAY/){
+			push @olderrors , @{$self->errors};
+			push @olderrors , @errors;
+			$self->errors(\@olderrors);	
 		}
-		$ok = 0;
+		else {
+			$self->errors(\@errors);
+		}
+	}
+	else{ 
+		$ok = 1;
 	}
 	return $ok;
 }

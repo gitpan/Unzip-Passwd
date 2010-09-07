@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 use Data::Dumper;
 #instancing with all stuff
 #
@@ -32,6 +32,9 @@ $obj->destiny(undef);
 ok( $obj->unzip == 1 , 'without_destination' );
 
 
+#directory not exists
+$obj->destiny('imnotexists');
+ok( $obj->unzip == 0 , 'directory_not_exists' );
 
 
 

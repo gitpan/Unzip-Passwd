@@ -13,7 +13,8 @@ ok( check_unzip() == 1 , 'have_unzip' );
 
 #LINUX ONLY!!!
 sub check_unzip {
-	if(-e '/usr/bin/unzip'){
+	my @check = `unzip -v`;
+	if($check[0] =~ /UnZip/i){
 		return 1;
 	}
 	else {

@@ -25,7 +25,7 @@ use Unzip::Passwd;
 
 
 my $obj = Unzip::Passwd->new( 	filename 	=> 'test.zip' ,
-								destiny	=> undef,
+								destiny	=> 'lalalalalaal',
 								passwd => '12345',
 #								debug => 1,
 							);
