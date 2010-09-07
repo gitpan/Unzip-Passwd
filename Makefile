@@ -16,7 +16,7 @@
 #     LICENSE => q[Artistic2]
 #     NAME => q[Unzip::Passwd]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Test::More=>q[0] }
+#     PREREQ_PM => { Test::More=>q[0], Moose=>q[0] }
 #     VERSION_FROM => q[lib/Unzip/Passwd.pm]
 #     clean => { FILES=>q[Unzip-Passwd-*] }
 #     dist => { COMPRESS=>q[gzip -9f], SUFFIX=>q[gz] }
@@ -58,11 +58,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = Unzip::Passwd
 NAME_SYM = Unzip_Passwd
-VERSION = 0.0.10
+VERSION = 0.0.11
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_0_10
+VERSION_SYM = 0_0_11
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.0.10
+XS_VERSION = 0.0.11
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -184,16 +184,13 @@ PERL_ARCHIVE       =
 PERL_ARCHIVE_AFTER = 
 
 
-TO_INST_PM = lib/Unzip/.Passwd.pm.swo \
-	lib/Unzip/Passwd.pm \
+TO_INST_PM = lib/Unzip/Passwd.pm \
 	mytest.pl
 
 PM_TO_BLIB = mytest.pl \
 	$(INST_LIB)/Unzip/mytest.pl \
 	lib/Unzip/Passwd.pm \
-	blib/lib/Unzip/Passwd.pm \
-	lib/Unzip/.Passwd.pm.swo \
-	blib/lib/Unzip/.Passwd.pm.swo
+	blib/lib/Unzip/Passwd.pm
 
 
 # --- MakeMaker platform_constants section:
@@ -262,7 +259,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = Unzip-Passwd
-DISTVNAME = Unzip-Passwd-0.0.10
+DISTVNAME = Unzip-Passwd-0.0.11
 
 
 # --- MakeMaker macro section:
@@ -483,7 +480,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '--- #YAML:1.0' > META_new.yml
 	$(NOECHO) $(ECHO) 'name:               Unzip-Passwd' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version:            0.0.10' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version:            0.0.11' >> META_new.yml
 	$(NOECHO) $(ECHO) 'abstract:           ~' >> META_new.yml
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - Andre Carneiro <andregarciacarneiro@gmail.com>' >> META_new.yml
@@ -494,6 +491,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) 'build_requires:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    ExtUtils::MakeMaker:  0' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META_new.yml
+	$(NOECHO) $(ECHO) '    Moose:       0' >> META_new.yml
 	$(NOECHO) $(ECHO) '    Test::More:  0' >> META_new.yml
 	$(NOECHO) $(ECHO) 'no_index:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    directory:' >> META_new.yml
@@ -771,10 +769,11 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.0.10">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.0.11">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT></ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Andre Carneiro &lt;andregarciacarneiro@gmail.com&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Moose::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Test::More" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="x86_64-linux-gnu-thread-multi-5.10" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
@@ -787,8 +786,7 @@ ppd :
 pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	$(NOECHO) $(ABSPERLRUN) -MExtUtils::Install -e 'pm_to_blib({@ARGV}, '\''$(INST_LIB)/auto'\'', q[$(PM_FILTER)], '\''$(PERM_DIR)'\'')' -- \
 	  mytest.pl $(INST_LIB)/Unzip/mytest.pl \
-	  lib/Unzip/Passwd.pm blib/lib/Unzip/Passwd.pm \
-	  lib/Unzip/.Passwd.pm.swo blib/lib/Unzip/.Passwd.pm.swo 
+	  lib/Unzip/Passwd.pm blib/lib/Unzip/Passwd.pm 
 	$(NOECHO) $(TOUCH) pm_to_blib
 
 

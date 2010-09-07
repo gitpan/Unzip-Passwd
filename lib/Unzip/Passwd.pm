@@ -20,19 +20,19 @@ has debug		=> (is => 'rw' , default => 0); #atributo que guarda os erros.
 
 =head1 VERSION
 
-Version 0.0.10
+Version 0.0.11
 
 =cut
 
-our $VERSION = '0.0.10';
+our $VERSION = '0.0.11';
 
 
 =head1 SYNOPSIS
 
  #Instance
  my $obj = Unzip::Passwd->new( filename => 'myfile.zip',
- 								destiny => 'some/path/to/file/unziped',
-								passwd => 'somebetterpassword',
+ 					destiny => 'some/path/to/file/unziped',
+					passwd => 'somebetterpassword',
 							);
  #unzip ...
  $obj->unzip;
@@ -91,7 +91,7 @@ sub unzip {
 
 =head2 list_files
 
- try to obtain a list of files from zipfile in $self->filename. If succeded, returns an arrayref with the filelist. Otherwise returns 
+ This try to obtain a list of files from zipfile in $self->filename. If succeded, returns an arrayref with the filelist. Otherwise returns 
  an arrayref empty. 
 
 =cut
@@ -184,7 +184,7 @@ sub analyze {
 
 =head2 exec_unzip
 
-This is a internal method. Stay way from this.
+This is a internal method. You should exec unzip method. Never exec this method directly.
 
 =cut
 
@@ -198,8 +198,7 @@ sub exec_unzip {
 
 	#LAST CHECK. This is necessary for stupid someone decides run exec_unzip directly!
 	if( $self->filename ){
-		
-
+	
 		#THIS PART AGREGATE OPTIONS FROM CONFIG( see the constructor method ), BEFORE EXECUTE.
 	
 		#if the password is defined and have some password... -P is added to command
@@ -275,9 +274,7 @@ sub show_errors {
 
 =head2 DEPENDECIES
 
-
- NO DEPENDECIES!!! But unzip program MUST BE INSTALLED in your O.S.
-
+ Moose - that's it! 
 
 =head1 AUTHOR
 

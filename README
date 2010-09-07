@@ -16,7 +16,9 @@ INSTALLATION
 
 First, you MUST install unzip program. 
 
-To install this module, run the following commands:
+Second, you MUST install Moose module.
+
+Finaly, to install this module, run the following commands:
 
 	perl Makefile.PL
 	make
@@ -26,7 +28,7 @@ To install this module, run the following commands:
 
 TEST
 
-Try run the test.pl script. This is a good introduction for Module usage.
+Try run the mytest.pl script. This is a good introduction for Module usage.
 
 
 SUPPORT AND DOCUMENTATION
