@@ -10,21 +10,22 @@ has debug		=> (is => 'rw' , default => 0); #atributo que guarda os erros.
 
 =head1 NAME
 
- Unzip::Passwd - Unzip files with password.
+Unzip::Passwd - Unzip files with password.
 
 =head1 DESCRIPTION
 
- Extreamly simple Unzip abstraction using the unzip program( MUST BE INSTALLED )
+
+Extreamly simple Unzip abstraction using the unzip program( MUST BE INSTALLED )
  
- WARNING: This is a pre-Alpha module.
+WARNING: This is a Alpha module.
 
 =head1 VERSION
 
-Version 0.0.11
+Version 0.0.13
 
 =cut
 
-our $VERSION = '0.0.11';
+our $VERSION = '0.0.13';
 
 
 =head1 SYNOPSIS
@@ -45,9 +46,15 @@ our $VERSION = '0.0.11';
 
 =head2 unzip
 
- Do the job, basicly. But first invokes the analyze method, to have certain the zip file is fine.
- if analyze returns 1, then unzip will try to open the zip file.
- No parameters, will return 1 if it's all ok. Otherwise, will return 0 and throw an exception.
+
+Do the job, basicly. But first invokes the analyze method, to have certain the destination
+directory exists.
+
+If analyze returns 1, then unzip will try to open the zip file.
+No parameters, will return 1 if it's all ok. Otherwise, will return 0 and throw an exception.
+
+ATTENTION: update options is activated by default. That means the files will be overwriten if exists in the
+same directory defined in 'destiny' attribute. 
 
 =cut
 
@@ -92,8 +99,9 @@ sub unzip {
 
 =head2 list_files
 
- This try to obtain a list of files from zipfile in $self->filename. If succeded, returns an arrayref with the filelist. Otherwise returns 
- an arrayref empty. 
+
+This try to obtain a list of files from zipfile in $self->filename. If succeded, returns an arrayref with the filelist. Otherwise returns 
+an arrayref empty. 
 
 =cut
 
@@ -132,8 +140,9 @@ sub list_files {
 
 =head2 analyze
 
- Analyzes possible file and directory problems( permissions and non-existing directories etc ). Returns 1 if 
- all it's ok! Otherwise returns 0. Receives the files list( arrayref ) as parameter.
+
+Analyzes possible file and directory problems( permissions and non-existing directories etc ). Returns 1 if 
+all it's ok! Otherwise returns 0. Receives the files list( arrayref ) as parameter.
 
 =cut
 
@@ -200,7 +209,11 @@ sub analyze {
 
 =head2 exec_unzip
 
-This is a internal method. You should exec unzip method. Never exec this method directly.
+
+This is a internal method. You should invoke unzip method, not this! Never invoke this method directly.
+
+ATTENTION: update options is activated by default. That means the files will be overwriten if exists in the
+directory defined in 'destiny' attribute.
 
 =cut
 
@@ -212,18 +225,18 @@ sub exec_unzip {
 	my @commands = ();
 	my $ok = 0;
 
-	#LAST CHECK. This is necessary for stupid someone decides run exec_unzip directly!
+	#LAST CHECK. This is necessary for stupid someone decides invokes exec_unzip directly!
 	if( $self->filename ){
 	
 		#THIS PART AGREGATE OPTIONS FROM CONFIG( see the constructor method ), BEFORE EXECUTE.
 	
 		#if the password is defined and have some password... -P is added to command
 		if(defined($self->passwd) and length($self->passwd) > 0){
-			$comm .= ' -P ' . $self->passwd . ' ';
+			$comm .= ' -u -P ' . $self->passwd . ' ';
 		}
 		elsif(!defined($self->passwd) || length($self->passwd) == 0){
 			#that's ok!
-			$comm  =  'unzip ' . $self->filename;
+			$comm  =  'unzip -u ' . $self->filename;
 		}
 	
 		#same thing for destination folder
@@ -266,7 +279,8 @@ sub exec_unzip {
 
 =head2 show_errors
 
- Makes the obvious. Show errors. Don't receives anything. Returns the error messages( arrayref ).
+
+Makes the obvious. Show errors. Don't receives nothing as parameter. Returns the error messages( arrayref ).
 
 =cut
 
@@ -288,7 +302,7 @@ sub show_errors {
 }
 
 
-=head2 DEPENDECIES
+=head1 DEPENDECIES
 
  Moose - that's it! 
 
@@ -299,9 +313,18 @@ Andre Carneiro, C<< <andregarciacarneiro at gmail.com> >>
 
 =head1 NOTES FOR THIS VERSION
 
+=over
 
- Many changes! The code is more optimized and less complex. Some basic tests are implemented ( finaly! :P ).
+=item 
 
+Default -u( update file, or create if necessary ) option activated. This avoids the interactive mode from unzip. 
+
+
+=item
+
+More tests were implemented
+ 
+=back
 
 =head1 BUGS
 
