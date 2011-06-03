@@ -15,11 +15,11 @@ WARNING: This is Alpha version.
 
 =head1 VERSION
 
-Version 0.0.14
+Version 0.0.15
 
 =cut
 
-our $VERSION = '0.0.14';
+our $VERSION = '0.0.15';
 
 =head1 SYNOPSIS
 
@@ -291,8 +291,6 @@ sub exec_unzip {
         $ok = 0;
     }
 
-
-#print STDERR "\n\nEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: \nFILENAME: ".$self->filename."\nERRORS: @errors\nOK: $ok\nCOMMANDS: ---@commands---\n";
     return $ok;
 }
 
@@ -390,6 +388,8 @@ Andre Carneiro, C<< <andregarciacarneiro at gmail.com> >>
 
 More tests implement.
 
+Moose implementation was removed because Moose have so much dependencies that aggregates unnecessary complexity to this
+very simple module( keep shit simple ).
 
 =head1 BUGS
 
@@ -442,6 +442,7 @@ Create a better way to treat exceptions...
 
 =head1 ACKNOWLEDGEMENTS
 
+Luis Campos de Carvalho(Champs) - for inspiration.
 
 =head1 LICENSE AND COPYRIGHT
 
